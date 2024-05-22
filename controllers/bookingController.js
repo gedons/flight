@@ -1,75 +1,48 @@
 // backend/controllers/bookingController.js
 const Booking = require('../models/Booking');
 const Flight = require('../models/Flight');
-const Passenger = require('../models/Passenger');
 
-// Select Seats
-const selectSeats = async (req, res) => {
-  const { flightId, seatNumbers } = req.body;
+// Create a new booking
+const createBooking = async (req, res) => {
   try {
+    const { flightId, seats } = req.body;
     const flight = await Flight.findById(flightId);
+
     if (!flight) {
       return res.status(404).json({ message: 'Flight not found' });
     }
-    // Check if seats are available
-    const unavailableSeats = seatNumbers.filter(seat => !flight.seatsAvailable.includes(seat));
-    if (unavailableSeats.length > 0) {
-      return res.status(400).json({ message: 'Some seats are not available', unavailableSeats });
+
+    if (seats > flight.seatsAvailable) {
+      return res.status(400).json({ message: 'Not enough seats available' });
     }
-    res.status(200).json({ message: 'Seats available' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error selecting seats' });
-  }
-};
 
-// Enter Passenger Details
-const enterPassengerDetails = async (req, res) => {
-  const { passengers } = req.body;
-  try {
-    const passengerDocs = await Passenger.insertMany(passengers);
-    res.status(201).json(passengerDocs);
-  } catch (error) {
-    res.status(500).json({ message: 'Error entering passenger details' });
-  }
-};
+    const totalPrice = seats * flight.price;
 
-// Confirm and Complete Booking
-const confirmBooking = async (req, res) => {
-  const { userId, flightId, passengerIds, seatNumbers, totalPrice } = req.body;
-  try {
     const booking = new Booking({
-      user: userId,
+      user: req.user._id,
       flight: flightId,
-      passengers: passengerIds,
-      seatNumbers,
+      seats,
       totalPrice,
     });
+
+    flight.seatsAvailable -= seats;
+    await flight.save();
     const createdBooking = await booking.save();
+    
     res.status(201).json(createdBooking);
   } catch (error) {
-    res.status(500).json({ message: 'Error confirming booking' });
+    res.status(500).json({ message: 'Error creating booking' });
   }
 };
 
-// View Booking Confirmation
-const getBooking = async (req, res) => {
+// Get all bookings for the logged-in user
+const getUserBookings = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('user', 'name email')
-      .populate('flight')
-      .populate('passengers');
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    res.json(booking);
+    const bookings = await Booking.find({ user: req.user._id }).populate('flight');
+    res.json(bookings);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching booking' });
+    res.status(500).json({ message: 'Error fetching bookings' });
   }
 };
 
-module.exports = {
-  selectSeats,
-  enterPassengerDetails,
-  confirmBooking,
-  getBooking,
-};
+module.exports = { createBooking, getUserBookings };
