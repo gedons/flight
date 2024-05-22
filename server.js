@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const flightRoutes = require('./routes/flightRoutes');
  
 
 dotenv.config();
@@ -31,6 +32,7 @@ const corsOptions = {
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/flights', flightRoutes);
 
 const PORT = process.env.PORT || 5000;
 

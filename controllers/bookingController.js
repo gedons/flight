@@ -1,6 +1,7 @@
 // backend/controllers/bookingController.js
 const Booking = require('../models/Booking');
 const Flight = require('../models/Flight');
+const { sendBookingConfirmation } = require('../utils/sendEmail');
 
 // Create a new booking
 const createBooking = async (req, res) => {
@@ -28,10 +29,16 @@ const createBooking = async (req, res) => {
     flight.seatsAvailable -= seats;
     await flight.save();
     const createdBooking = await booking.save();
+
+    // Populate flight details for the email
+    await createdBooking.populate('flight');
+
+    // Send booking confirmation email
+    await sendBookingConfirmation(req.user, createdBooking);
     
     res.status(201).json(createdBooking);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating booking' });
+    res.status(500).json({ message: 'Error creating booking', error: error.message });
   }
 };
 
