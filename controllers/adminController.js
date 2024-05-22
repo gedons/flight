@@ -15,9 +15,8 @@ const getUsers = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (user) {
-      await user.remove();
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (user) {    
       res.json({ message: 'User removed' });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -27,7 +26,16 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Manage Flights
+// Manage Flight
+const getFlights = async (req, res) => {
+  try {
+    const flights = await Flight.find({}).populate('category');
+    res.json(flights);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching flights' });
+  }
+};
+
 const addFlight = async (req, res) => {
   try {
     const { flightNumber, departure, destination, departureTime, arrivalTime, price, seatsAvailable, category } = req.body;
@@ -35,7 +43,7 @@ const addFlight = async (req, res) => {
     const createdFlight = await flight.save();
     res.status(201).json(createdFlight);
   } catch (error) {
-    res.status(500).json({ message: 'Error adding flight' });
+    res.status(500).json({ message: 'Error adding flight', error: error.message });
   }
 };
 
@@ -64,9 +72,8 @@ const updateFlight = async (req, res) => {
 
 const deleteFlight = async (req, res) => {
   try {
-    const flight = await Flight.findById(req.params.id);
-    if (flight) {
-      await flight.remove();
+    const flight = await Flight.findByIdAndDelete(req.params.id);     
+    if (flight) {    
       res.json({ message: 'Flight removed' });
     } else {
       res.status(404).json({ message: 'Flight not found' });
@@ -89,6 +96,7 @@ const getBookings = async (req, res) => {
 module.exports = {
   getUsers,
   deleteUser,
+  getFlights,
   addFlight,
   updateFlight,
   deleteFlight,

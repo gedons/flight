@@ -5,7 +5,12 @@ const { protect, admin } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-router.route('/s')
+router.use((req, res, next) => {
+  console.log(`Received ${req.method} request for ${req.url}`);
+  next();
+});
+
+router.route('/')
   .get(protect, admin, getCategories)
   .post(protect, admin, addCategory);
 

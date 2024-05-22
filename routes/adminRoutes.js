@@ -1,6 +1,6 @@
 // backend/routes/adminRoutes.js
 const express = require('express');
-const { getUsers, deleteUser, addFlight, updateFlight, deleteFlight, getBookings } = require('../controllers/adminController');
+const { getUsers, deleteUser, getFlights, addFlight, updateFlight, deleteFlight, getBookings } = require('../controllers/adminController');
 const { getCategories, addCategory, updateCategory, deleteCategory } = require('../controllers/flightCategoryController');
 const { protect, admin } = require('../middlewares/authMiddleware');
 
@@ -13,6 +13,7 @@ router.route('/users/:id').delete(protect, admin, deleteUser);
 // Flight management
 router.route('/flights')
     .post(protect, admin, addFlight)
+    .get(protect, admin, getFlights)
     .get(protect, admin, getBookings);
 
 router.route('/flights/:id')
